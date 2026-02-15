@@ -21,7 +21,7 @@ def loadData():
     df_person_month_catalogue=pd.read_excel ('/content/Heart_Failure_Patient_Data_12_Months_20_Patients.xlsx', sheet_name ='PERSON_MONTH_CATALOGUE') # loading the person month catalogue data for the dashboard.
     print(df_person_month_catalogue)
     
-    df_person, df_activity = load_data()
+    df_person, df_activity = loadData()
     st.success(f"Loaded {len(df_person)} person records and {len(df_activity)} activity records")
     
 # Adding navigational sidebar on dashboard
@@ -55,8 +55,7 @@ elif section == "Patient outcomes":
 elif section == "Heathcare costs":
   st.header("Healthcare costs")
   st.write("Healthcare costs contents will be displayed here")
+  df_person, df_activity, df_activity_catalogue, df_person_month_catalogue = loadData()
   #Showing some sample data from my Excel spreadsheet
   st.metric("Total cost", f"£{df_activity['total cost'].sum():,.2f}") 
   
-  
-
