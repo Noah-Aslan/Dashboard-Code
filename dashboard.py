@@ -501,4 +501,5 @@ def loadData():
 # # Displaying the contents of each section of the dashboard
 
   
+# Section 2: GP Activity
     
