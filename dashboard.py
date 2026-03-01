@@ -55,6 +55,7 @@ with st.sidebar:
       page,
       key=page,
       width=True,
+      use_container_width=True,
       type="primary" if st.session_state.current_page == page else "secondary"
     ):
       st.session_state.current_page = page
@@ -151,23 +152,14 @@ if section == ("Hospital activity"):
 
       figure1.add_trace(go.Scatter(
         x=monthly_admissions['ACTIVITY_MONTH'],
-        y=monthly_admissions['IP_NEL_EMERGENCY_ENCOUNTERS'],
-        name='Emergency Admissions',
-        mode='lines+markers',
-        line=dict(color="#33C8CB", width=3),
-        marker=dict(size=8)
-      ))
-
-      figure1.add_trace(go.Scatter(
-        x=monthly_admissions['ACTIVITY_MONTH'],
         y=monthly_admissions["IP_EL_ENCOUNTERS"],
         name='Elective Admissions',
         mode='lines+markers',
-        line=dict(color="#AACB33", width=3),
+        line=dict(color="#33CBC8", width=3),
         marker=dict(size=8)
       ))
 
-      st.plotly_chart(figure1, width="stretch")
+      st.plotly_chart(figure1, use_container_width=True, key="figure1")
 
       # Chart 2: A&E and Inpatient Activity
       st.subheader("A&E and Inpatient Activity")
@@ -210,7 +202,7 @@ if section == ("Hospital activity"):
         height=400
       )
 
-      st.plotly_chart(figure2, width=True)
+      st.plotly_chart(figure2, use_container_width=True,key="figure2")
 
       # Chart 3 Time of Stay in Hospital
       st.subheader("Time of Stay in Hospital")
@@ -233,91 +225,91 @@ if section == ("Hospital activity"):
               'Admission Type': 'Elective',
               'Length of Stay (days)': avg_los_elective
             })
-        los_df = pd.DataFrame(los_data)
-        
-        figure3 = px.box(
-          los_df,
-          x='Admission Type',
-          y='Length of Stay (days)',
-          color='Admission Type', 
-          color_discrete_map={'Emergency': '#3336CB', 'Elective': '#3336CB'},
-          title='Length of Stay: Emergency and Elective Admissions'
-        )
-        figure3.update_layout(showlegend=False, height=400)
-        
-        st.plotly_chart(figure3, width=True)
-        
-        #Chart 4 Readmissions Analysis
-        st.subheader("4 Readmissions Analysis - Frequently Admitted")
-        
-        df_activity['ACTIVITY_MONTH'] = pd.to_datetime(df_activity['ACTIVITY_MONTH'], errors='coerce')
-        readmission_data = df_activity.loc[df_activity['IP_ENCOUNTERS'] > 0].copy()
-        readmission_data['Month'] = readmission_data['ACTIVITY_MONTH'].dt.strftime('%b %Y')
-        
-        readmission_pivot = readmission_data.pivot_table(
-          values='IP_ENCOUNTERS',
-          index='SK_PATIENT_ID',
-          columns='Month',
-          aggfunc='sum',
-          fill_value=0
-        )
-        #Filtering and sorting
-        readmission_pivot = readmission_pivot.loc[readmission_pivot.sum(axis=1) >= 2]
-        
-        readmission_pivot['Total'] = readmission_pivot.sum(axis=1)
-        readmission_pivot = readmission_pivot.sort_values('Total', ascending=False).drop(columns=['Total'])
-        
-        #Check to see if there are no patients that qualify, then show message identifying this.
-        if readmission_pivot.empty:
-          st.info("No patients had two or more inpatient admissions in the 12 month/year period.")
-        else: 
-        
-          figure4 = go.Figure(data=go.Heatmap(
-          z=readmission_pivot.values,
-          x=readmission_pivot.columns,
-          y=readmission_pivot.index,
-          colorscale='Blues',
-          text=readmission_pivot.values,
-          texttemplate='%{text}',
-          textfont={"size": 10},
-          colorbar=dict(title="Admissions")
-        ))
-        
-        figure4.update_layout(
-          title='Patient Readmission Patterns (patients with two or more further admissions)',
-          xaxis_title='Month',
-          yaxis_title='Patient ID',
-          height=max(400, len(readmission_pivot) * 25)
-        )
-        
-        st.plotly_chart(figure4, width=True)
-        
-        # Chart 5 Breakdown of Costs
-        st.subheader("Breakdown of Costs: Emergency and Elective")
-        
-        emergency_cost = df_activity['IP_NEL_EMERGENCY_COST'].sum()
-        elective_cost = df_activity['IP_EL_COST'].sum()
-        
-        cost_breakdown = pd.DataFrame({
-          'Type' : ['Emergency Admissions', 'Elective Admissions'],
-          'Cost' : [emergency_cost, elective_cost]
-        })
-        
-        figure5 = px.pie(
-          cost_breakdown,
-          values='Cost',
-          names='Type',
-          title='Inpatient Cost Distribution',
-          color='Type',
-          color_discrete_map={
-            'Emergency Admissions': '#3336CB',
-            'Elective Admissions': '#3336CB'
-          }
-        )
+      los_df = pd.DataFrame(los_data)
+      
+      figure3 = px.box(
+        los_df,
+        x='Admission Type',
+        y='Length of Stay (days)',
+        color='Admission Type', 
+        color_discrete_map={'Emergency': "#CB3333", 'Elective': "#CB5E33"},
+        title='Length of Stay: Emergency and Elective Admissions'
+      )
+      figure3.update_layout(showlegend=False, height=400)
+      
+      st.plotly_chart(figure3, use_container_width=True, keys="figure3")
+      
+      #Chart 4 Readmissions Analysis
+      st.subheader("4 Readmissions Analysis - Frequently Admitted")
+      
+      df_activity['ACTIVITY_MONTH'] = pd.to_datetime(df_activity['ACTIVITY_MONTH'], errors='coerce')
+      readmission_data = df_activity.loc[df_activity['IP_ENCOUNTERS'] > 0].copy()
+      readmission_data['Month'] = readmission_data['ACTIVITY_MONTH'].dt.strftime('%b %Y')
+      
+      readmission_pivot = readmission_data.pivot_table(
+        values='IP_ENCOUNTERS',
+        index='SK_PATIENT_ID',
+        columns='Month',
+        aggfunc='sum',
+        fill_value=0
+      )
+      #Filtering and sorting
+      readmission_pivot = readmission_pivot.loc[readmission_pivot.sum(axis=1) >= 2]
+      
+      readmission_pivot['Total'] = readmission_pivot.sum(axis=1)
+      readmission_pivot = readmission_pivot.sort_values('Total', ascending=False).drop(columns=['Total'])
+      
+      #Check to see if there are no patients that qualify, then show message identifying this.
+      if readmission_pivot.empty:
+        st.info("No patients had two or more inpatient admissions in the 12 month/year period.")
+      else: 
+      
+        figure4 = go.Figure(data=go.Heatmap(
+        z=readmission_pivot.values,
+        x=readmission_pivot.columns,
+        y=readmission_pivot.index,
+        colorscale='Blues',
+        text=readmission_pivot.values,
+        texttemplate='%{text}',
+        textfont={"size": 10},
+        colorbar=dict(title="Admissions")
+      ))
+      
+      figure4.update_layout(
+        title='Patient Readmission Patterns (patients with two or more further admissions)',
+        xaxis_title='Month',
+        yaxis_title='Patient ID',
+        height=max(400, len(readmission_pivot) * 25)
+      )
+      
+      st.plotly_chart(figure4, use_container_width=True, keys="figure4")
+      
+      # Chart 5 Breakdown of Costs
+      st.subheader("Breakdown of Costs: Emergency and Elective")
+      
+      emergency_cost = df_activity['IP_NEL_EMERGENCY_COST'].sum()
+      elective_cost = df_activity['IP_EL_COST'].sum()
+      
+      cost_breakdown = pd.DataFrame({
+        'Type' : ['Emergency Admissions', 'Elective Admissions'],
+        'Cost' : [emergency_cost, elective_cost]
+      })
+      
+      figure5 = px.pie(
+        cost_breakdown,
+        values='Cost',
+        names='Type',
+        title='Inpatient Cost Distribution',
+        color='Type',
+        color_discrete_map={
+          'Emergency Admissions': '#3336CB',
+          'Elective Admissions': '#3336CB'
+        }
+      )
 
       figure5.update_layout(height=400)
 
-      st.plotly_chart(figure5, width=True)
+      st.plotly_chart(figure5, use_container_width=True, keys="figure5")
 
       # Chart 6 Top Highest Cost Patients
 
@@ -327,7 +319,7 @@ if section == ("Hospital activity"):
 
       df_merged = pd.merge(
         df_activity,
-        df_person[['PERSON_ID', 'ANALYsIS_MONTH', 'TOTAL_ACTIVE_CONDITIONS']],
+        df_person[['PERSON_ID', 'ANALYSIS_MONTH', 'TOTAL_ACTIVE_CONDITIONS']],
         left_on=['SK_PATIENT_ID_STR', 'ACTIVITY_MONTH'],
         right_on=['PERSON_ID', 'ANALYSIS_MONTH'],
         how='left'
@@ -361,7 +353,7 @@ if section == ("Hospital activity"):
         height=450
       )
 
-      st.plotly_chart(figure6, width=True)
+      st.plotly_chart(figure6, use_container_width=True, keys="figure6")
 
       # Main Insights
       st.markdown("---")
@@ -374,7 +366,7 @@ if section == ("Hospital activity"):
         
         # Showing sample data from my Excel spreadsheet
         # st.dataframe(df_activity.head())
-=======
+
 
 # Initialisation of session state for navigation
 if 'current_page'not in st.session_state:
@@ -383,130 +375,130 @@ if 'current_page'not in st.session_state:
 # Loading my dashboard data
 def loadData():
     df_person=pd.read_excel ('Heart_Failure_Patient_Data_12_Months_20_Patients.xlsx', sheet_name ='PERSON_MONTH_DATA') # df - data frame, pd - pandas object. read_excel allows me to open and read the data in my excel spreadsheet and use it in the code.
-    df_person # Data frame is a data structure for storing tabular data in Python.
-    print (df_person)
-    # The difference between df and print(df) is df is evaluating the object, i.e. it is displaying it in a pretty table format, whereas print(df) is printing it as text.
+#     df_person # Data frame is a data structure for storing tabular data in Python.
+#     print (df_person)
+#     # The difference between df and print(df) is df is evaluating the object, i.e. it is displaying it in a pretty table format, whereas print(df) is printing it as text.
 
-    df_activity=pd.read_excel ('Heart_Failure_Patient_Data_12_Months_20_Patients.xlsx', sheet_name ='FCT_ACTIVITY_DATA') # loading the activity data for the dashboard.
-    print(df_activity)
+#     df_activity=pd.read_excel ('Heart_Failure_Patient_Data_12_Months_20_Patients.xlsx', sheet_name ='FCT_ACTIVITY_DATA') # loading the activity data for the dashboard.
+#     print(df_activity)
     
-    df_activity_catalogue=pd.read_excel ('Heart_Failure_Patient_Data_12_Months_20_Patients.xlsx', sheet_name ='FCT_ACTIVITY_CATALOGUE') # loading the activity catalogue data for the dashboard.
-    print(df_activity_catalogue)
+#     df_activity_catalogue=pd.read_excel ('Heart_Failure_Patient_Data_12_Months_20_Patients.xlsx', sheet_name ='FCT_ACTIVITY_CATALOGUE') # loading the activity catalogue data for the dashboard.
+#     print(df_activity_catalogue)
     
-    df_person_month_catalogue=pd.read_excel ('Heart_Failure_Patient_Data_12_Months_20_Patients.xlsx', sheet_name ='PERSON_MONTH_CATALOGUE') # loading the person month catalogue data for the dashboard.
-    print(df_person_month_catalogue)
-    return df_person, df_activity, df_activity_catalogue, df_person_month_catalogue
+#     df_person_month_catalogue=pd.read_excel ('Heart_Failure_Patient_Data_12_Months_20_Patients.xlsx', sheet_name ='PERSON_MONTH_CATALOGUE') # loading the person month catalogue data for the dashboard.
+#     print(df_person_month_catalogue)
+#     return df_person, df_activity, df_activity_catalogue, df_person_month_catalogue
 
-df_person, df_activity, df_activity_catalogue, df_person_month_catalogue = loadData()
-st.success(f"Loaded {len(df_person)} person records and {len(df_activity)} activity records")
+# df_person, df_activity, df_activity_catalogue, df_person_month_catalogue = loadData()
+# st.success(f"Loaded {len(df_person)} person records and {len(df_activity)} activity records")
 
-# Adding navigational sidebar on dashboard
-with st.sidebar:
-  st.title("Dashboards")
+# # Adding navigational sidebar on dashboard
+# with st.sidebar:
+#   st.title("Dashboards")
   
-  pages = [
-    "Hospital activity",
-    "GP activity",
-    "Community provider activity"
-  ]
+#   pages = [
+#     "Hospital activity",
+#     "GP activity",
+#     "Community provider activity"
+#   ]
   
-  for page in pages: 
-    if st.button(
-      page,
-      key=page,
-      use_container_width=True,
-      type="primary" if st.session_state.current_page == page else "secondary"
-    ):
-      st.session_state.current_page = page
-      st.rerun()
+#   for page in pages: 
+#     if st.button(
+#       page,
+#       key=page,
+#       use_container_width=True,
+#       type="primary" if st.session_state.current_page == page else "secondary"
+#     ):
+#       st.session_state.current_page = page
+#       st.rerun()
 
-st.markdown("---")
+# st.markdown("---")
 
-# Getting the current session from session state
-section = st.session_state.current_page
+# # Getting the current session from session state
+# section = st.session_state.current_page
 
     
-# Displaying the contents of each section of the dashboard
-if section == ("Hospital activity"):
-  st.header("Hospital activity")
-  st.subheader("Hospital metrics")
-  # create 7 columns for the hospital metrics
-  col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+# # Displaying the contents of each section of the dashboard
+# if section == ("Hospital activity"):
+#   st.header("Hospital activity")
+#   st.subheader("Hospital metrics")
+#   # create 7 columns for the hospital metrics
+#   col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
   
-  with col1: 
-    total_admissions = df_activity['IP_ENCOUNTERS'].sum()
-    st.metric(
-      label="Total Admissions",
-      value=f"{int(total_admissions)}"
-    )
+#   with col1: 
+#     total_admissions = df_activity['IP_ENCOUNTERS'].sum()
+#     st.metric(
+#       label="Total Admissions",
+#       value=f"{int(total_admissions)}"
+#     )
     
-  with col2: 
-    emergency_admissions = df_activity['IP_NEL_EMERGENCY_ENCOUNTERS'].sum()
-    st.metric(
-      label="Emergency Admissions",
-      value=f"{int(emergency_admissions)}"
-    )
+#   with col2: 
+#     emergency_admissions = df_activity['IP_NEL_EMERGENCY_ENCOUNTERS'].sum()
+#     st.metric(
+#       label="Emergency Admissions",
+#       value=f"{int(emergency_admissions)}"
+#     )
     
-  with col3: 
-    elective_admissions = df_activity['IP_EL_ENCOUNTERS'].sum()
-    st.metric(
-      label="Elective Admissions",
-      value=f"{int(elective_admissions)}"
-    )
+#   with col3: 
+#     elective_admissions = df_activity['IP_EL_ENCOUNTERS'].sum()
+#     st.metric(
+#       label="Elective Admissions",
+#       value=f"{int(elective_admissions)}"
+#     )
     
-  with col4: 
-    total_duration = df_activity['IP_DURATION'].sum()
-    total_encounters = df_activity['IP_ENCOUNTERS'].sum()
-    avg_los = total_duration / total_encounters if total_encounters > 0 else 0
-    st.metric(
-      label="Average length of stays",
-      value=f"{avg_los:.1f} days"
-    )
+#   with col4: 
+#     total_duration = df_activity['IP_DURATION'].sum()
+#     total_encounters = df_activity['IP_ENCOUNTERS'].sum()
+#     avg_los = total_duration / total_encounters if total_encounters > 0 else 0
+#     st.metric(
+#       label="Average length of stays",
+#       value=f"{avg_los:.1f} days"
+#     )
     
-  with col5: 
-    total_ip_cost = df_activity['IP_COST'].sum()
-    st.metric(
-      label="Total Inpatient Cost",
-      value=f"£{total_ip_cost:,.0f}"
-    )
+#   with col5: 
+#     total_ip_cost = df_activity['IP_COST'].sum()
+#     st.metric(
+#       label="Total Inpatient Cost",
+#       value=f"£{total_ip_cost:,.0f}"
+#     )
     
-  with col6: 
-    total_ae = df_activity['AE_ENCOUNTERS'].sum()
-    st.metric(
-      label="A&E Attendances",
-      value=f"{int(total_ae)}"
-    )
+#   with col6: 
+#     total_ae = df_activity['AE_ENCOUNTERS'].sum()
+#     st.metric(
+#       label="A&E Attendances",
+#       value=f"{int(total_ae)}"
+#     )
     
-  with col7:
-    total_ae_cost = df_activity['AE_COST'].sum()
-    st.metric(
-      label="A&E Cost",
-      value=f"£{total_ae_cost:,.0f}"
-    )
-# calculating the total A&E cost. 
+#   with col7:
+#     total_ae_cost = df_activity['AE_COST'].sum()
+#     st.metric(
+#       label="A&E Cost",
+#       value=f"£{total_ae_cost:,.0f}"
+#     )
+# # calculating the total A&E cost. 
 
-  st.markdown("---")
+#   st.markdown("---")
 
 
   
-  # Showing sample data from my Excel spreadsheet
-  # st.dataframe(df_activity.head())
->>>>>>> ee12cdcc48522a4537368c4ee5c617b5c681a032
+#   # Showing sample data from my Excel spreadsheet
+#   # st.dataframe(df_activity.head())
+
   
-elif section == "GP activity": 
-  st.header("GP activity")
-  st.write("GP activity contents will be displayed here")
-  # Showing some sample data from my Excel spreadsheet
-  #st.dataframe(df_person.head())
+# elif section == "GP activity": 
+#   st.header("GP activity")
+#   st.write("GP activity contents will be displayed here")
+#   # Showing some sample data from my Excel spreadsheet
+#   #st.dataframe(df_person.head())
   
-elif section == "Community provider activity":
-  st.header("Community provider activity")
-  st.write("Community provider activity contents will be displayed here")
-  # df_person, df_activity, df_activity_catalogue, df_person_month_catalogue = loadData()
-  # Showing some sample data from my Excel spreadsheet
-  # st.metric("Total cost", f"£{df_activity['total cost'].sum():,.2f}") 
+# elif section == "Community provider activity":
+#   st.header("Community provider activity")
+#   st.write("Community provider activity contents will be displayed here")
+#   # df_person, df_activity, df_activity_catalogue, df_person_month_catalogue = loadData()
+#   # Showing some sample data from my Excel spreadsheet
+#   # st.metric("Total cost", f"£{df_activity['total cost'].sum():,.2f}") 
   
-# Displaying the contents of each section of the dashboard
+# # Displaying the contents of each section of the dashboard
 
   
     
