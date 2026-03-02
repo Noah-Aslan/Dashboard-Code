@@ -520,5 +520,150 @@ if section == "GP activity":
   with col2:
     avg_per_patient = df_activity.groupby('SK_PATIENT_ID')['GP_ENCOUNTERS'].sum().mean()
     st.metric(
-      label=
+      label="Average visits per patient",
+      value=f"{avg_per_patient:.1f}"
     )
+    
+  with col3: 
+    total_gp_duration = df_activity['GP_DURATION'].sum()
+    total_gp_hours = total_gp_duration / 60 # Converting minutes to hours for the amount of GP hours
+    st.metric(
+      label="Total GP consultation hours",
+      value=f"{total_gp_hours:,.0f} hours"
+    )
+    
+  with col4:
+    avg_consultation = total_gp_duration / total_gp if total_gp > 0 else 0
+    st.metric(
+      label="Average consultation duration time",
+      value=f"{avg_consultation:.}"
+    )
+    
+  with col5: 
+    # Patients who visit the GP >10 times a month (high utilising patients).
+    high_utilizers = df_activity[df_activity['GP_ENCOUNTERS'] > 10].groupby('SK_PATIENT_ID')['ACTIVITY_MONTH'].count()
+    st.metric(
+      label="High Utilizers (>10/month)",
+      value=f"{len(high_utilizers)}"
+    )
+    
+  st.markdown("---")
+  
+  # GP Visualisations
+  st.header("GP Activity Analysis")
+  
+  # Chart 1: GP Consultation volume trends
+  st.subheader("GP Consultation Volume Over The 12 Month/Year period")
+  
+  #Preparing the Data
+  monthly_gp = df_activity.groupby('ACTIVITY_MONTH').agg({
+    'GP_ENCOUNTERS': 'sum'
+  }).reset_index()
+  
+# Create area chart
+figure_gp1 = go.Figure()
+
+figure_gp1.add_trace(go.Scatter(
+  x=monthly_gp['ACTIVITY_MONTH'],
+  y=monthly_gp['GP_ENCOUNTERS'],
+  name='GP Visits',
+  mode='lines',
+  fill='tozeroy', # Query this line in chart 1
+  line=dict(color='#6BFEF4', width=2),
+  fillcolor='rgba(78, 205, 196, 0.3)'
+))
+
+figure_gp1.update_layout(
+  title='Monthly GP Consultation Volume',
+  xaxis_title='Month',
+  yaxis_title='Number of GP Visits',
+  hovermode='x unified',
+  height=400
+)
+
+st.plotly_chart(figure_gp1, width="stretch", key="figure_gp1")
+
+# Chart 2: GP Visits Compared To Hospital Admissions
+st.subheader("GP Visits Compared To Hospital Admissions")
+
+#Preparing the Data
+gp_vs_hospital = df_activity.groupby('ACTIVITY_MONTH').agg({
+  'GP_ENCOUNTERS': 'sum'
+  'IP_ENCOUNTERS': 'sum'
+}).reset_index()
+
+# Create dual axis chart
+from plotly.subplots import make_subplots
+
+figure_gp2.add_trace(
+  go.Bar(
+    x=gp_vs_hospital['ACTIVITY_MONTH'],
+    y=gp_vs_hospital['GP_ENCOUNTERS'],
+    name='GP Visits',
+    marker_color="#CD4EBA"
+  ),
+  secondary_y=False
+)
+
+# Add hospital admissions (secondary y-axis)
+figure_gp2.add_trace(
+  go.Scatter(
+    x=gp_vs_hospital['ACTIVITY_MONTH'],
+    y=gp_vs_hospital['IP_ENCOUNTERS'],
+    name='Hospital Admissions',
+    mode='lines+markers',
+    line=dict(color="#6BFF75", width=3),
+    marker=dict(size=8)
+  ),
+  secondary_y=True
+)
+
+# Update axes
+figure_gp2.update_xaxes(title_text="Month")
+figure_gp2.update_yaxes(title_text="GP Visits", secondary_y=False)
+figure_gp2.update_yaxes(title_text="Hospital Admission", secondary_y=True)
+
+figure_gp2.update_layout(
+  title='GP Activity vs Hospital Admissions',
+  hovermode='x unified',
+  height=400
+)
+
+st.plotly_chart(figure_gp2, width="stretch", key="figure_gp2")
+
+#Chart 3: Patient Visit Frequency Distribution
+st.subheader("Patient Visit Frequency Distribution")
+
+# Calculate total visits for each paatient
+patient_gp_visits = df_activity.groupby('SK_PATIENT_ID')['GP_ENCOUNTERS'].sum().reset_index()
+patient_gp_visits.columns = ['Patient_ID', 'Total_GP_Visits']
+
+# Creating the histogram
+figure_gp3 = px.histogram(
+  patient_gp_visits,
+  x='Total_GP_Visits',
+  nbins=20,
+  title='Distribution of GP Visits for Each Patient Over 12 Month/Year Period',
+  labels={'Total_GP_Visits': 'Total GP Visits', 'count': 'Number of Patients'},
+  color_discrete_sequence=["#CD4E9E"]
+) 
+
+figure_gp3.ipdate_layout(
+  xaxis_title='Total GP Visits Per Each Patient',
+  yaxis_title='Number of Patients',
+  height=400,
+  showlegend=False
+)
+
+st.plotly_chart(figure_gp3, width="stretch", key="figure_gp3")
+
+# Chart 4: Average GP Consultation Duration Trends
+st.subheader("Average GP Consultation Duraation Trend")
+
+# Calculate average duration for each month
+monthly_duration = df_activity.groupby('ACTIVITY_MONTH').apply(
+  lambda x: x['GP_DURATION'].sum() / x['GP_ENCOUNTERS'].sum() if x['GP_ENCOUNTERS'].sum() > 0 else 0
+).reset_index()
+monthly_duration.columns = ['ACTIVITY_MONTH', 'Avg_Duration']
+
+# Create the line chart
