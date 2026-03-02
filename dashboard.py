@@ -499,7 +499,26 @@ def loadData():
 #   # st.metric("Total cost", f"£{df_activity['total cost'].sum():,.2f}") 
   
 # # Displaying the contents of each section of the dashboard
-
   
 # Section 2: GP Activity
-    
+if section == "GP activity":
+  st.header("GP Activity")
+  
+  # Metrics row for the GP section
+  st.subheadrer("Key GP Metrics")
+  
+  # Creating 5 columns for each of the GP metrics
+  col1, col2, col3, col4, col5 = st.columns(5)
+  
+  with col1:
+    total_gp = int(df_activity['GP_ENCOUNTERS'].sum())
+    st.metric(
+      label="Total GP Visits",
+      value=f"{total_gp:,}"
+    )
+  
+  with col2:
+    avg_per_patient = df_activity.groupby('SK_PATIENT_ID')['GP_ENCOUNTERS'].sum().mean()
+    st.metric(
+      label=
+    )
