@@ -733,4 +733,76 @@ figure_gp5.update_layout(
 
 st.plotly_chart(figure_gp5, width="stretch", key="figure_gp5")
 
-#Chart 6: GP Visits VS 
+# Chart 6: GP Visits VS Patient's Existing Conditions
+st.subheader("GP Visits/Appointments Vs Number of Existing Conditions")
+
+# Merge with Person Data for Existing Conditions
+df_gp_condition = pd.merge(
+  df_activity,
+  df_person[['PERSON_ID', 'ANALYSIS_MONTH', 'TOTAL_ACTIVE_CONDITIONS']],
+  left_on=['SK_PATIENT_ID', 'ACTIVITY_MONTH'],
+  right_on=['PERSON_ID', 'ANALYSIS_MONTH'],
+  how='left'
+)
+
+# Calculating Average GP Visits/Appointments and Total Cost By Each Patient
+gp_condition_summary = df_gp_condition.groupby('SK_PATIENT_ID').agg({
+  'GP_ENCOUNTERS': 'mean',
+  'TOTAL_ACTIVE_CONDITIONS': 'mean',
+  'TOTAL_COST': 'sum'
+}).reset_index()
+
+# Creating the scatter plot
+figure_gp6 = px.scatter(
+  gp_condition_summary,
+  x='TOTAL_ACTIVE_CONDITIONS',
+  y='GP_ENCOUNTERS',
+  size='TOTAL_COST',
+  color='TOTAL_COST',
+  title='GP Visits Vs Patient Existing Conditions',
+  labels={
+    'TOTAL_ACTIVE_CONDITIONS': 'Number of Active Health Conditions',
+    'GP_ENCOUNTERS': 'Average GP Visits/Appointments For Each Month',
+    'Total_COST': 'Total Cost (£)'
+  },
+  color_continuous_scale='Blues',
+  size_max=30
+)
+
+figure_gp6.update_layout(
+  height=450,
+  hovermode='closest'
+)
+
+st.plotly_chart(figure_gp6, width="stretch", key="figure_gp6")
+
+# Main insights for GP Activity Section
+st.markdown("---")
+st.subheader(" Key Insights For GP'S")
+
+col1, col2 = st.columns(2)
+
+with col1: 
+  peak_month = monthly_gp.loc[monthly_gp['GP_ENCOUNTERS'].idxmax(), 'ACTIVITY_MONTH'].strftime('%B %Y') #Query this line
+  lowest_month = monthly_gp.loc[monthly_gp['GP_ENCOUNTERS'].idxmin(), 'ACTIVITY_MONTH'].strftime('%B %Y')
+  
+  st.info(f"""
+  **GP Utilisation Patterns:**
+  - Total GP Visits/Appointments in 12 Months/Year Period: {total_gp:,}
+  - Average per patient: {avg_per_patient:.1f} visits
+  - Peak month: {peak_month} ({monthly_gp['GP_ENCOUNTERS'].min():.0f} visits)
+  - lowest month: {lowest_month} ({monthly_gp['GP_ENCOUNTERS'].min():.0f} visits)
+  """)
+  
+  with col2:
+    # Calculating the relation between GP Visits and the hospital admissions
+    relation = gp_vs_hospital[['GP_ENCOUNTERS', 'IP_ENCOUNTERS']].corr().iloc[0,1]
+    
+    st.info(f"""
+    **Relation Between GP and Hospital**
+    - Average consultation/appointment time: {avg_consultation:.1f} minutes
+    - Relation with admissions: {relation:.2f}
+    - Heavy utilizers (>10 appointments/month): {len(high_utilizers)} patients
+    - {'Negative relation could imply GP Visits/Appointments might reduce admissions' if relation < 0 else 'Positive relation suggests that more unwell/sicker patients see their GP more'}
+    """)
+    
