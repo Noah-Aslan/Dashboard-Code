@@ -667,3 +667,70 @@ monthly_duration = df_activity.groupby('ACTIVITY_MONTH').apply(
 monthly_duration.columns = ['ACTIVITY_MONTH', 'Avg_Duration']
 
 # Create the line chart
+figure_gp4 = go.Figure()
+
+figure_gp4.add_trace(go.Scatter(
+  x=monthly_duration['ACTIVITY_MONTH'],
+  y=monthly_duration['Avg_Duration'],
+  mode='lines+markers',
+  line=dict(color="#390DB1", width=3),
+  marker=dict(size=10, color="#4ECD78"),
+  name='Avg Duration'
+))
+
+figure_gp4.update_layout(
+  title='Average GP Consultation Duration Over 12 Month/Year Period',
+  xaxis_title='Month',
+  Yaxis_title='Average appointment Duration (In Minutes)',
+  hovermode='x unified',
+  height=400
+)
+
+st.plotly_chart(figure_gp4, width="stretch", key="figure_gp4")
+
+# Chart 5: GP Activity by Age Ranges
+st.subheader("GP Activity by Age Range")
+
+# Merging with Person data to get the age ranges
+df_gp_age = pd.merge(
+  df_activity,
+  df_person[['PERSON_ID', 'ANALYSIS_MONTH', 'AGE_BAND_NHS']],
+  left_on=['SP_PATIENT_ID', 'ACTIVITY_MONTH'],
+  right_on=['PERSON_ID', 'ANALYSIS_MONTH'],
+  how='left'
+)
+
+# Calculate Average GP Visits/Appointments by Each Age Range
+gp_by_age = df_gp_age.groupby('AGE_RANGE_NHS')['GP_ENCOUNTERS'].mean().reset_index()
+gp_by_age.columns = ['AGE_RANGE', 'AVG_GP_ENCOUNTERS']
+
+# Sorting by Age Categories
+age_order = ['18-29', '30-49', '50-64', '65+']
+gp_by_age['Age_Range'] = pd.Categorical(gp_by_age['Age_Range'], categories=age_order, ordered=True)
+gp_by_age = gp_by_age.sort_values('Age_Range')
+
+# Creating the Bar Chart
+figure_gp5 = px.bar(
+  gp_by_age,
+  x='Age_Range',
+  y='Avg_GP_Encounters',
+  title='Average GP Visits/Appointments by Each Age Group',
+  labels={'Age_Range': 'Age Range', 'Avg_GP_Encounters': 'Average GP Visits/Appointments Per Month'},
+  color='Avg_GP_Encounters',
+  color_continuous_scale='Blue',
+  text='Avg_GP_Encounters'
+)
+
+figure_gp5.update_traces(
+  texttemplate='%{text:.1f}', # Query this line
+  textposition='outside'
+)
+
+figure_gp5.update_layout(
+  shoelegend=False,
+  height=400
+)
+
+st.plotly_chart(figure_gp5, width="stretch", key="figure_gp5")
+
+#Chart 6: GP Visits VS 
