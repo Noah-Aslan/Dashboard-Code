@@ -818,4 +818,13 @@ if "SK_PATIENT_ID_STR" not in df_activity.columns:
   - Heavy utilizers (>10 appointments/month): {len(high_utilizers)} patients
   - {'Negative relation could imply GP Visits/Appointments might reduce admissions' if relation < 0 else 'Positive relation suggests that more unwell/sicker patients see their GP more'}
   """)
+
     
+# Section 3: Community Provider Activity
+elif section == "Community provider activity":
+  st.header("Community Provider Activity")
+  
+  # Metrics row for the community care provider section
+  st.subheader("Main Community Care Provider Metrics")
+  
+  
