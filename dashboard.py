@@ -302,8 +302,8 @@ if section == ("Hospital activity"):
         title='Inpatient Cost Distribution',
         color='Type',
         color_discrete_map={
-          'Emergency Admissions': '#3336CB',
-          'Elective Admissions': '#3336CB'
+          'Emergency Admissions': "#C00606",
+          'Elective Admissions': "#148BA9"
         }
       )
 
@@ -825,6 +825,85 @@ elif section == "Community provider activity":
   st.header("Community Provider Activity")
   
   # Metrics row for the community care provider section
-  st.subheader("Main Community Care Provider Metrics")
+  st.subheader("Vital Community Care Provider Metrics")
+  
+  # Creating the 5 columns for each metric in community care provider metrics
+  col1, col2, col3, col4, col5 = st.columns(5)
+  
+  with col1: 
+    total_cc = int(df_activity['CC_ENCOUNTERS'].sum())
+    st.metric(
+      label="Total Community Care Contacts",
+      value=f"{total_cc:,}"
+    )
+    
+  with col2: 
+    avg_cc_per_patient = df_activity.groupby('SK_PATIENT_ID')['CC_ENCOUNTERS'].sum().mean()
+    st.metric(
+      label="Average Number of Community Care Contacts Per Each Patient",
+      value=f"{avg_cc_per_patient:.1f}"
+    )
+    
+  with col3:
+    total_cc_duration = df_activity['CC_DURATION'].sum()
+    total_cc_hours = total_cc_duration / 60 # Converting the minutes to hours for simplicity
+    st.metric(
+      label="The Total Number of Community Care Provider Hours Utilised"
+      value=f"{total_cc_hours:,.0f} hours"
+    )
+    
+  with col4: 
+    total_cc_cost = df_activity['CC_COST'].sum()
+    st.metric(
+      label="The Total Community Care Cost",
+      value=f"£{total_cc_cost:,.0f}"
+    )
+  
+  with col5: 
+    patients_receiving_communitycare = df_activity[df_activity['CC_ENCOUNTERS'] > 0]['SK_PATIENT_ID'].nunique() # Query this line and explain it
+    total_patients = df_activity['SK_PATIENT_ID'].nunique()
+    pct_receiving_communitycare = (patients_receiving_communitycare / total_patients * 100) if total_patients > 0 else 0
+    st.metric(
+      label="% Of Patients Receiving Community Care",
+      value=f"{pct_receiving_communitycare:.1f}%"
+    )
+    
+  st.markdown("---") # Query this line and explain it
+  
+  # Visualisations of Communiy Care Providers
+  st.header("Analysis of Community Care Activity")
+  
+  # Chart 1: Volume of community care over the year/12 month period
+  st.subheader("Volume of Community Care Over The Year/12 Month Period")
+  
+  # Data preperation
+  monthly_cc = df_activity.groupby('ACTIVITY_MONTH').agg({
+    'CC_ENCOUNTERS': 'sum'
+  }).reset_index()
+  
+  # Creating the line chart with fill to see results
+  figure_cc1 = go.Figure()
+  
+  figure_cc1.add_trace(go.Scatter(
+    x=monthly_cc['ACTIVITY_MONTH'],
+    y=monthly_cc['CC_ENCOUNTERS'],
+    name='Community Care Contacts',
+    mode='lines',
+    fill='tozeroy',
+    line=dict(color="#0C3BCA", width=2),
+    fillcolor='rgba(155, 89, 182, 0.3)' # Explain and query this line for the RGBA and numbers
+  ))
+  
+  figure_cc1.update_layout(
+    title='Number of Monthly Community Care visits and Contacts',
+    xaxis_title='Number of Community Care Contacts and Visits',
+    yaxis_title='Number of Community Care Contacts and Visits',
+    hovermode='x unified', # Query hovermode, what it is and why we need it
+    height=400
+  )
+  
+  st.plotly_chart(figure_cc1, width="stretch", key="figure_cc1")
+  
+  
   
   
