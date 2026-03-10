@@ -904,6 +904,123 @@ elif section == "Community provider activity":
   
   st.plotly_chart(figure_cc1, width="stretch", key="figure_cc1")
   
+  # Chart 2: Mix of Care Settings with GP, Hospital and Community Care Provider
+  st.subheader("Mix of Care Settings Over The Year/12 Month Period")
   
+  # Prepping the Data to be added
+  mix_of_care = df_activity.groupby('ACTIVITY_MONTH').agg({
+    'GP_ENCOUNTERS': 'sum',
+    'CC_ENCOUNTERS': 'sum',
+    'OP_ENCOUNTERS': 'sum',
+    'IP_ENCOUNTERS': 'sum',
+    'AE_ENCOUNTERS': 'sum'
+  }).reset_index()
+  
+  # Creating the Stacked Chart
+  figure_cc2 = go.Figure()
+  
+  figure_cc2.add_trace(go.Scatter(
+    x=mix_of_care['ACTIVITY_MONTH'],
+    y=mix_of_care['GP_ENCOUNTERS'],
+    name='GP',
+    mode='lines',
+    stackgroup='one',
+    fillcolor="#19DD9C"
+  ))
+  
+  figure_cc2.add_trace(go.Scatter(
+    x=mix_of_care['ACTIVITY_MONTH'],
+    y=mix_of_care['CC_ENCOUNTERS'],
+    name='Community Care Provider',
+    mode='lines',
+    stackgroup='one',
+    fillcolor="#52E90C"
+  ))
+  
+  figure_cc2.add_trace(go.Scatter(
+    x=mix_of_care['ACTIVITY_MONTH'],
+    y=mix_of_care['OP_ENCOUNTERS'],
+    name='Outpatients',
+    mode='lines',
+    stackgroup='one',
+    fillcolor="#CBA930"
+  ))
+  
+  figure_cc2.add_trace(go.Scatter(
+    x=mix_of_care['ACTIVITY_MONTH'],
+    y=mix_of_care['IP_ENCOUNTERS'],
+    name='Inpatients',
+    mode='lines',
+    stackgroup='one',
+    fillcolor="#E11010"
+  ))
+  
+  figure_cc2.add_trace(go.Scatter(
+    x=mix_of_care['ACTIVITY_MONTH'],
+    y=mix_of_care['AE_ENCOUNTERS'],
+    name='A&E',
+    mode='lines', 
+    stackgroup='one',
+    fillcolor="#6C0A8A"
+  ))
+  
+  figure_cc2.update_layout(
+    title='Mix of Care Settings Across All The Various Service Types Used For Heart Failure',
+    xaxis_title='Month',
+    yaxis_title='Number of Encounters Across All Health Services Used',
+    hovermode='x unified',
+    height=400
+  )
+  
+  st.plotly_chart(figure_cc2, width="stretch", key="figure_cc2")
+  
+  # Chart 3: Community Care Utilisation for Area Deprivation
+  st.subheader("Community Care Utilisation by Deprivation Level in Areas")
+  
+  # Convert Patient ID to String format for compatibility
+  df_activity["SK_PATIENT_ID_STR"] = "P" + df_activity["SK_PATIENT_ID"].astype("string")
+  
+  # Merging with Person Data to see and get the deprivation levels
+  df_cc_imd = pd.merge(
+    df_activity,
+    df_person[['PERSON_ID', 'ANALYSIS_MONTH', 'IMD_QUINTILE_19']],
+    left_on=['SK_PATIENT_ID_STR', 'ACTIVITY_MONTH'],
+    right_on=['PERSON_ID', 'ANALYSIS_MONTH'],
+    how='left'
+  )
+  
+  # Calculating the Average Community Care Utilisation Using Deprivation
+  cc_by_imd = df_cc_imd.groupby('IMD_QUINTILE_19')['CC_ENCOUNTERS'].mean().reset_index()
+  cc_by_imd.columns = ['IMD_Quintile', 'Avg_CC_Encounters']
+  
+  # Sorting and arranging using Quintile range (1 being most deprived, and 5 being least deprived)
+  cc_by_imd = cc_by_imd.sort_values('IMD_Quintile')
+  
+  # Create bar chart
+  figure_cc3 = px.bar(
+    cc_by_imd,
+    x='IMD_Quintile',
+    y='Avg_CC_Encounters',
+    title='The Average Community Care Contacts and Visits From Patients By Deprivation Level Across Areas',
+    labels={
+      'IMD_Quintile': 'IMD Quintile (1=Most Deprived Level, 5=Least Deprived Level)',
+      'Avg_CC_Encounters': 'Average Community Care Contacts and Visits Per Month by Patients'
+    },
+    color='Avg_CC_Encounters',
+    color_continuous_scale='Purple',
+    text='Avg_CC_Encounters'
+  )
+  
+  figure_cc3.update_traces(
+    texttemplate='%{text:.2f}',
+    textposition='outside'
+  )
+  
+  figure_cc3.update_layout(
+    showlegend=False,
+    height=400
+  )
+  
+  st.plotly_chart(figure_cc3, width="stretch", key="figure_cc3")
   
   
