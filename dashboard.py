@@ -1023,4 +1023,178 @@ elif section == "Community provider activity":
   
   st.plotly_chart(figure_cc3, width="stretch", key="figure_cc3")
   
+  # Chart 4: Community Care Specifically Using Frailty Status
+  st.subheader("Community Care Specifically Using Frailty Status")
   
+  # Merging with Person Data to Get and See Frailty Status within Patients
+  df_cc_frail = pd.merge(
+    df_activity,
+    df_person[['PERSON_ID', 'ANALYSIS_MONTH', 'HAS_FRAIL']],
+    left_on=['SK_PATIENT_ID_STR', 'ACTIVITY_MONTH'],
+    right_on=['PERSON_ID', 'ANALYSIS_MONTH'],
+    how='left'
+  )
+  
+  # Calculating The Average Community Care Contacts/Visits by Frailty
+  cc_by_frailty = df_cc_frail.groupby('HAS_FRAIL')['CC_ENCOUNTERS'].mean().reset_index()
+  cc_by_frailty.columns = ['Frailty_Status', 'Avg_CC_Encounters']
+  
+  # Replacing the Boolean labels with suitable readable labels
+  cc_by_frailty['Frailty_Status'] = cc_by_frailty['Frailty_Status'].map({
+    True: 'Frail',
+    False: 'Not Frail'
+  })
+  
+  # Creating a Grouped Bar Chart to Display The Data
+  figure_cc4 = px.bar(
+    cc_by_frailty,
+    x='Frailty_Status',
+    y='Avg_cc_Encounters',
+    title='The Average Community Care Visits/Contacts Based On Frailty Status',
+    labels={
+      'Frailty_Status': 'Frailty Status',
+      'Avg_CC_Encounters': 'The Average Community Care Visits/Contacts Per Each Month'
+    },
+    color='Frailty_Status',
+    color_discrete_map={'Frail': "#A70505", 'Not Frail': "#7D4904"},
+    text='Avg_CC_Encounters'
+  )
+  
+  figure_cc4.update_traces(
+    texttemplate='%{text:.2f}',
+    textposition='outside'
+  )
+  
+  figure_cc4.update_layout(
+    showlegend=False,
+    height=400
+  )
+  
+  st.plotly_chart(figure_cc4, width="stretch", key="figure_cc4")
+  
+  # Chart 5: Community Care Visit Length in Minutes Consistency (Box Plot)
+  st.subheader("Community Care Visit Length in Minutes Consistency")
+  
+  # Prepping the data - getting the durations where the visits/contacts are listed
+  cc_duration_data = []
+  
+  for idx, row in df_activity.iterrows():
+    if row['CC_ENCOUNTERS'] > 0 and row['CC_DURATION'] > 0:
+      avg_duration = row['CC_DURATION'] / row['CC_ENCOUNTERS']
+      month_str = row['ACTIVITY_MONTH'].strftime('%b %Y')
+      cc_duration_data.append({
+        'Month': month_str,
+        'Avg_Duration': avg_duration
+      })
+      
+  cc_duration_df = pd.DataFrame(cc_duration_data)
+  
+  # Creating the box plot for chart 5
+  if not cc_duration_df.empty:
+    figure_cc5 = px.box(
+      cc_duration_df,
+      x='Month',
+      y='Average_Duration',
+      title='Community Care Visit/Contact Duration for Each Month',
+      labels={
+        'Month': 'Month',
+        'Average_Duration': 'The Average Duration of Visit/Contact (Minutes)' 
+      },
+      color_discrete_sequence=["#7F5490"]
+    )
+    
+    figure_cc5.update_layout(
+      showlegebd=False,
+      height=400,
+      xaxis_tickangle=-45
+    )
+    
+    st.plotly_chart(figure_cc5, width="stretch", key="figure_cc5")
+  else:
+    st.info("No Community Care Visit/Contact Duration Data Available for This Period.")
+    
+    
+  # Chart 6: Shows the mix of care settings that the top 20 patients use in percentage breakdown (Using Stacked Bar Graph) *Query this explanation*
+  st.subheader("Shows The Mix of Care Settings That The Top 20 Patients Use in As a Percentage Breakdown Using a Stacked Bar Graph")
+  
+  # Calculating the Total Number of Encounters by Each Patient and the Care Setting
+  patient_care_mix = df_activity.groupby('S_PATIENT_ID').agg({
+    'GP_ENCOUNTERS': 'sum',
+    'CC_ENCOUNTERS': 'sum',
+    'OP_eENCOUNTERS': 'sum',
+    'IP_ENCOUNTERS': 'sum',
+    'AE_ENCOUNTERS': 'sum'
+  }).reset_index()
+  
+  # Calculating the total number of encounters per each patient
+  patient_care_mix['Total_Encounters'] = patient_care_mix[
+    ['GP_ENCOUNTERS', 'CC_ENCOUNTERS, 'OP_ENCOUNTERS', 'IP_ENCOUNTERS', 'AE_ENCOUNTERS']
+  ].sum(axis=1)
+  
+  # Getting the top 20 Patients By The Total Encounters
+ top_20_patients = patient_care_mix.nlargest(20, 'Total_Encounters')
+ 
+ # Calculating the percentages for each care setting
+ top_20_patients['GP_%'] = (top_20_patients['GP_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
+ top_20_patients['CC_%'] = (top_20_patients['CC_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
+ top_20_patients['OP_%'] = (top_20_patients['OP_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
+ top_20_patients['IP_%'] = (top_20_patients['IP_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100) 
+ top_20_patients['AE_%'] = (top_20_patients['AE_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
+ 
+ # Creating the stacked bar chart
+ figure_cc6 = go.Figure()
+ 
+ figure_cc6.add_trace(go.Bar(
+   x=yop_20_patients['SK_PATIENT_ID'],
+   y=top_20_patients['GP_%'],
+   name='GP',
+   marker_color='#3498DB'
+ ))
+  
+  figure_cc6.add_trace(go.Bar(
+    x=top_20_patients['SK_PATIENT_ID'],
+    y=top_20_patients['CC_%'],
+    name='Community Care',
+    marker_color='#9B59B6'
+  ))
+  
+  figure_cc6.add_trace(go.bar(
+    x=top_20_patients['SK_PATIENT_ID'],
+    y=top_20_patients['OP_%'],
+    name='Outpatients',
+    marker_color='#2ECC71'
+  ))
+  
+  figure_cc6.add_trace(go.Bar(
+    x=top_20_patients['SK_PATIENT_ID'],
+    y=top_20_patients['IP_%'],
+    name='Inpatients',
+    marker_color='#E74C3C'
+  ))
+  
+  figure_cc6.add_trace(go.Bar(
+    x=top_20_patients['SK_PATIENT_ID'],
+    y=top_20_patients['AE_%'],
+    name='A&E',
+    marker_color='#f39C12'
+  ))
+  
+  figure_cc.update_layout(
+    bar,mode='stack',
+    title='Mix of Care Settings For the Top 20 Highest Workforce Utilising Patients',
+    xaxis_title='Patient ID',
+    yaxis_title='Percentage of The Total Workforce Encounters %',
+    hovermode='x unified',
+    height=450
+  )
+  
+  st.plotly_chart(figure_cc6, width="stretch", key="figure_cc6")
+  
+  # Key summaries relavent for the Community Care Provider Section
+  st.markdown("---")
+  st.subheader(" Key Summaries for the Community Care Provider")
+  
+  col1, col2 = st.columns(2)
+  
+  with col1: 
+    peak_cc_month = monthly_cc.loc[monthly_cc]
