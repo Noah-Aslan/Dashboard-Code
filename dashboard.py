@@ -848,7 +848,7 @@ elif section == "Community provider activity":
     total_cc_duration = df_activity['CC_DURATION'].sum()
     total_cc_hours = total_cc_duration / 60 # Converting the minutes to hours for simplicity
     st.metric(
-      label="The Total Number of Community Care Provider Hours Utilised"
+      label="The Total Number of Community Care Provider Hours Utilised",
       value=f"{total_cc_hours:,.0f} hours"
     )
     
@@ -1128,8 +1128,10 @@ elif section == "Community provider activity":
   
   # Calculating the total number of encounters per each patient
   patient_care_mix['Total_Encounters'] = patient_care_mix[
-    ['GP_ENCOUNTERS', 'CC_ENCOUNTERS, 'OP_ENCOUNTERS', 'IP_ENCOUNTERS', 'AE_ENCOUNTERS']
+      ['GP_ENCOUNTERS', 'CC_ENCOUNTERS, 'OP_ENCOUNTERS', 'IP_ENCOUNTERS', 'AE_ENCOUNTERS']
   ].sum(axis=1)
+  ]
+  
   
   # Getting the top 20 Patients By The Total Encounters
  top_20_patients = patient_care_mix.nlargest(20, 'Total_Encounters')
@@ -1197,4 +1199,43 @@ elif section == "Community provider activity":
   col1, col2 = st.columns(2)
   
   with col1: 
-    peak_cc_month = monthly_cc.loc[monthly_cc]
+    peak_communitycare_month = monthly_communitycare.loc[monthly_communitycare['COMMUNITYCARE_ENCOUNTERS'].idxmax(), 'ACTIVITY_MONTH'].strftime('%B %Y')
+    lowest_communiycare_month = mothly_communitycare.loc[month;y-communitycare['COMMUNUTYCARE_ENCOUNTERS'].idxmin(), 'ACTIVITY_MONTH'].strftime('%B %Y')
+    
+    st.info(f"""
+      Community Care Provider Total Work Force Utilisation:
+      
+      Total number of Community Care Visits and Contacts: {total_communitycare:,}
+      Average Community Care contacts and visits per patient: {average_communitycare_per_patient:.1f} contacts and visits
+      Top/peak month: {peak_communitycare_month} ({monthly_communitycare['COMMUNITYCARE_ENCOUNTERS'].max():.0f} contacts)
+      Lowest/Least contacts: {lowest_communitycare_month} ({monthly_communitycare['COMMUNITYCARE_ENCOUNTERS'].min():.0f} contacts)
+      Patients utilising and receiving care: {patients_receiving_communitycare} ({percentage_patients_receiving_communitycare:.1f}%)
+      
+    """);
+    
+    with col2: 
+      # Calculating the care settings mix distribution
+      total_of_all_encounters = care_mix[['GP_ENCOUNTERS', 'COMMUNITYCARE_ENCOUNTERS', 'OUTPATIENT_ENCOUNTERS', 'INPATIENT_ENCOUNTERS', 'A&E_ENCOUNTERS']].sum().sum() #Query the second .sum() and the variable names.
+      communitycare_percentage = (care_mix['COMMUNITYCARE_ENCOUNTERS'].sum() / total_all_care_settings_encounters * 100) if total_all_care_settings_encounters > 0 else 0
+      
+      # Check if frailty data is included/exists in the community care workforce usage.
+      if not communitycare_by_frailty.empty and len(communitycare_by_frailty) == 2:
+        average_frail_patients = communitycare_by_frailty[communitycare_by_frailty['Frailty_status'] == 'Frail']['Average_CommunityCare_Encounters'].values
+        average_not_frail_patients = communitycare_by_frailty[communitycare_by_frailty['Frailty_Status'] == 'Not Frail']['Average_CommunityCare_Encounters'].values
+        
+        if length(frail_average) > 0 and length(not_frail_average) > 0:
+          frail_ratio = frail_average[0] / not_frail_average[0] if not_frail_average[0] > 0 else 0
+        else: 
+          frail_ratio = 0
+      else: 
+        frail_ratio = 0
+      
+      st.info("""
+      Analysis of Community Care Provider Setting Total Workforce Utilisation: 
+      Total community care hours utilised: {total_communitycare_hours:,.0f} hours utilised
+      Total community care providr cost: £{total_communitycare_cost:,.0f} 
+      Community Care as a % of all encounters/contacts/visits: {communitycare_percentage:.1f}%
+      Ratio of Frail vs not frail patients using community care services: {frail_ratio:.2f}x
+      {'Frail patients get more support from community care provider' if frail_ratio > 1 else 'Similar support received across frailty status'}
+      """)
+      
