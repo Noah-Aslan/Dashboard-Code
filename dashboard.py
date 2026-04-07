@@ -275,6 +275,10 @@ if section == ("Hospital activity"):
         colorbar=dict(title="Admissions")
       ))
       
+<<<<<<< HEAD
+=======
+      
+>>>>>>> master
       figure4.update_layout(
         title='Patient Readmission Patterns (patients with two or more further admissions)',
         xaxis_title='Month',
@@ -1147,7 +1151,11 @@ elif section == "Community provider activity":
  figure_cc6 = go.Figure()
  
  figure_cc6.add_trace(go.Bar(
+<<<<<<< HEAD
    x=yop_20_patients['SK_PATIENT_ID'],
+=======
+   x=top_20_patients['SK_PATIENT_ID'],
+>>>>>>> master
    y=top_20_patients['GP_%'],
    name='GP',
    marker_color='#3498DB'
