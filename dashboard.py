@@ -263,7 +263,6 @@ if section == ("Hospital activity"):
       if readmission_pivot.empty:
         st.info("No patients had two or more inpatient admissions in the 12 month/year period.")
       else: 
-      
         figure4 = go.Figure(data=go.Heatmap(
         z=readmission_pivot.values,
         x=readmission_pivot.columns,
@@ -362,7 +361,7 @@ if section == ("Hospital activity"):
       col1, col2 = st.columns(2)
         
       with col1:
-          st.info
+          st.info ("insights will be placed here.") # check placement of brackets.
         
         # Showing sample data from my Excel spreadsheet
         # st.dataframe(df_activity.head())
@@ -1118,10 +1117,10 @@ elif section == "Community provider activity":
   st.subheader("Shows The Mix of Care Settings That The Top 20 Patients Use in As a Percentage Breakdown Using a Stacked Bar Graph")
   
   # Calculating the Total Number of Encounters by Each Patient and the Care Setting
-  patient_care_mix = df_activity.groupby('S_PATIENT_ID').agg({
+  patient_care_mix = df_activity.groupby('SK_PATIENT_ID').agg({
     'GP_ENCOUNTERS': 'sum',
     'CC_ENCOUNTERS': 'sum',
-    'OP_eENCOUNTERS': 'sum',
+    'OP_ENCOUNTERS': 'sum',
     'IP_ENCOUNTERS': 'sum',
     'AE_ENCOUNTERS': 'sum'
   }).reset_index()
@@ -1129,7 +1128,7 @@ elif section == "Community provider activity":
   # Calculating the total number of encounters per each patient
   patient_care_mix['Total_Encounters'] = patient_care_mix[
       ['GP_ENCOUNTERS', 'CC_ENCOUNTERS, 'OP_ENCOUNTERS', 'IP_ENCOUNTERS', 'AE_ENCOUNTERS']
-  ].sum(axis=1)]
+  ].sum(axis=1)
   
   
   # Getting the top 20 Patients By The Total Encounters
@@ -1160,7 +1159,7 @@ elif section == "Community provider activity":
     marker_color='#9B59B6'
   ))
   
-  figure_cc6.add_trace(go.bar(
+  figure_cc6.add_trace(go.Bar(
     x=top_20_patients['SK_PATIENT_ID'],
     y=top_20_patients['OP_%'],
     name='Outpatients',
@@ -1182,7 +1181,7 @@ elif section == "Community provider activity":
   ))
   
   figure_cc.update_layout(
-    bar,mode='stack',
+    barmode='stack',
     title='Mix of Care Settings For the Top 20 Highest Workforce Utilising Patients',
     xaxis_title='Patient ID',
     yaxis_title='Percentage of The Total Workforce Encounters %',
@@ -1237,5 +1236,5 @@ elif section == "Community provider activity":
       Community Care as a % of all encounters/contacts/visits: {communitycare_percentage:.1f}%
       Ratio of Frail vs not frail patients using community care services: {frail_ratio:.2f}x
       {'Frail patients get more support from community care provider' if frail_ratio > 1 else 'Similar support received across frailty status'}
-      """)
+      """);
       
