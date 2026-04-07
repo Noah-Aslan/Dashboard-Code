@@ -275,10 +275,6 @@ if section == ("Hospital activity"):
         colorbar=dict(title="Admissions")
       ))
       
-<<<<<<< HEAD
-=======
-      
->>>>>>> master
       figure4.update_layout(
         title='Patient Readmission Patterns (patients with two or more further admissions)',
         xaxis_title='Month',
@@ -373,12 +369,12 @@ if section == ("Hospital activity"):
 
 
 # Initialisation of session state for navigation
-if 'current_page'not in st.session_state:
-  st.session_state.current_page = "Hospital activity"
+# if 'current_page'not in st.session_state:
+  #st.session_state.current_page = "Hospital activity"
 
 # Loading my dashboard data
-def loadData():
-    df_person=pd.read_excel ('Heart_Failure_Patient_Data_12_Months_20_Patients.xlsx', sheet_name ='PERSON_MONTH_DATA') # df - data frame, pd - pandas object. read_excel allows me to open and read the data in my excel spreadsheet and use it in the code.
+#def loadData():
+    #df_person=pd.read_excel ('Heart_Failure_Patient_Data_12_Months_20_Patients.xlsx', sheet_name ='PERSON_MONTH_DATA') # df - data frame, pd - pandas object. read_excel allows me to open and read the data in my excel spreadsheet and use it in the code.
 #     df_person # Data frame is a data structure for storing tabular data in Python.
 #     print (df_person)
 #     # The difference between df and print(df) is df is evaluating the object, i.e. it is displaying it in a pretty table format, whereas print(df) is printing it as text.
@@ -1133,33 +1129,29 @@ elif section == "Community provider activity":
   # Calculating the total number of encounters per each patient
   patient_care_mix['Total_Encounters'] = patient_care_mix[
       ['GP_ENCOUNTERS', 'CC_ENCOUNTERS, 'OP_ENCOUNTERS', 'IP_ENCOUNTERS', 'AE_ENCOUNTERS']
-  ].sum(axis=1)
-  ]
+  ].sum(axis=1)]
   
   
   # Getting the top 20 Patients By The Total Encounters
- top_20_patients = patient_care_mix.nlargest(20, 'Total_Encounters')
+  top_20_patients = patient_care_mix.nlargest(20, 'Total_Encounters')
  
  # Calculating the percentages for each care setting
- top_20_patients['GP_%'] = (top_20_patients['GP_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
- top_20_patients['CC_%'] = (top_20_patients['CC_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
- top_20_patients['OP_%'] = (top_20_patients['OP_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
- top_20_patients['IP_%'] = (top_20_patients['IP_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100) 
- top_20_patients['AE_%'] = (top_20_patients['AE_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
+  top_20_patients['GP_%'] = (top_20_patients['GP_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
+  top_20_patients['CC_%'] = (top_20_patients['CC_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
+  top_20_patients['OP_%'] = (top_20_patients['OP_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
+  top_20_patients['IP_%'] = (top_20_patients['IP_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100) 
+  top_20_patients['AE_%'] = (top_20_patients['AE_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
  
  # Creating the stacked bar chart
- figure_cc6 = go.Figure()
+  figure_cc6 = go.Figure()
  
- figure_cc6.add_trace(go.Bar(
-<<<<<<< HEAD
-   x=yop_20_patients['SK_PATIENT_ID'],
-=======
-   x=top_20_patients['SK_PATIENT_ID'],
->>>>>>> master
-   y=top_20_patients['GP_%'],
-   name='GP',
-   marker_color='#3498DB'
- ))
+  figure_cc6.add_trace(go.Bar(
+    x=top_20_patients['SK_PATIENT_ID'],
+    x=top_20_patients['SK_PATIENT_ID'],
+    y=top_20_patients['GP_%'],
+    name='GP',
+    marker_color='#3498DB'
+  ))
   
   figure_cc6.add_trace(go.Bar(
     x=top_20_patients['SK_PATIENT_ID'],
