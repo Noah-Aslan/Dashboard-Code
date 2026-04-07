@@ -830,36 +830,36 @@ elif section == "Community provider activity":
   col1, col2, col3, col4, col5 = st.columns(5)
   
   with col1: 
-    total_cc = int(df_activity['CC_ENCOUNTERS'].sum())
+    total_communitycare = int(df_activity['communitycare_ENCOUNTERS'].sum())
     st.metric(
       label="Total Community Care Contacts",
-      value=f"{total_cc:,}"
+      value=f"{total_communitycare:,}"
     )
     
   with col2: 
-    avg_cc_per_patient = df_activity.groupby('SK_PATIENT_ID')['CC_ENCOUNTERS'].sum().mean()
+    average_communitycare_per_patient = df_activity.groupby('SK_PATIENT_ID')['communitycare_ENCOUNTERS'].sum().mean()
     st.metric(
       label="Average Number of Community Care Contacts Per Each Patient",
-      value=f"{avg_cc_per_patient:.1f}"
+      value=f"{average_communitycare_per_patient:.1f}"
     )
     
   with col3:
-    total_cc_duration = df_activity['CC_DURATION'].sum()
-    total_cc_hours = total_cc_duration / 60 # Converting the minutes to hours for simplicity
+    total_communitycare_duration = df_activity['communitycare_DURATION'].sum()
+    total_communitycare_hours = total_communitycare_duration / 60 # Converting the minutes to hours for simplicity
     st.metric(
       label="The Total Number of Community Care Provider Hours Utilised",
-      value=f"{total_cc_hours:,.0f} hours"
+      value=f"{total_communitycare_hours:,.0f} hours"
     )
     
   with col4: 
-    total_cc_cost = df_activity['CC_COST'].sum()
+    total_communitycare_cost = df_activity['communitycare_COST'].sum()
     st.metric(
       label="The Total Community Care Cost",
-      value=f"£{total_cc_cost:,.0f}"
+      value=f"£{total_communitycare_cost:,.0f}"
     )
   
   with col5: 
-    patients_receiving_communitycare = df_activity[df_activity['CC_ENCOUNTERS'] > 0]['SK_PATIENT_ID'].nunique() # Query this line and explain it
+    patients_receiving_communitycare = df_activity[df_activity['communitycare_ENCOUNTERS'] > 0]['SK_PATIENT_ID'].nunique() # Query this line and explain it
     total_patients = df_activity['SK_PATIENT_ID'].nunique()
     pct_receiving_communitycare = (patients_receiving_communitycare / total_patients * 100) if total_patients > 0 else 0
     st.metric(
@@ -876,16 +876,16 @@ elif section == "Community provider activity":
   st.subheader("Volume of Community Care Over The Year/12 Month Period")
   
   # Data preperation
-  monthly_cc = df_activity.groupby('ACTIVITY_MONTH').agg({
-    'CC_ENCOUNTERS': 'sum'
+  monthly_communitycare = df_activity.groupby('ACTIVITY_MONTH').agg({
+    'communitycare_ENCOUNTERS': 'sum'
   }).reset_index()
   
   # Creating the line chart with fill to see results
   figure_cc1 = go.Figure()
   
   figure_cc1.add_trace(go.Scatter(
-    x=monthly_cc['ACTIVITY_MONTH'],
-    y=monthly_cc['CC_ENCOUNTERS'],
+    x=monthly_communitycare['ACTIVITY_MONTH'],
+    y=monthly_communitycare['communitycare_ENCOUNTERS'],
     name='Community Care Contacts',
     mode='lines',
     fill='tozeroy',
@@ -909,7 +909,7 @@ elif section == "Community provider activity":
   # Prepping the Data to be added
   mix_of_care = df_activity.groupby('ACTIVITY_MONTH').agg({
     'GP_ENCOUNTERS': 'sum',
-    'CC_ENCOUNTERS': 'sum',
+    'communitycare_ENCOUNTERS': 'sum',
     'OP_ENCOUNTERS': 'sum',
     'IP_ENCOUNTERS': 'sum',
     'AE_ENCOUNTERS': 'sum'
@@ -929,7 +929,7 @@ elif section == "Community provider activity":
   
   figure_cc2.add_trace(go.Scatter(
     x=mix_of_care['ACTIVITY_MONTH'],
-    y=mix_of_care['CC_ENCOUNTERS'],
+    y=mix_of_care['communitycare_ENCOUNTERS'],
     name='Community Care Provider',
     mode='lines',
     stackgroup='one',
@@ -980,7 +980,7 @@ elif section == "Community provider activity":
   df_activity["SK_PATIENT_ID_STR"] = "P" + df_activity["SK_PATIENT_ID"].astype("string")
   
   # Merging with Person Data to see and get the deprivation levels
-  df_cc_imd = pd.merge(
+  df_communitycare_imd = pd.merge(
     df_activity,
     df_person[['PERSON_ID', 'ANALYSIS_MONTH', 'IMD_QUINTILE_19']],
     left_on=['SK_PATIENT_ID_STR', 'ACTIVITY_MONTH'],
@@ -989,25 +989,25 @@ elif section == "Community provider activity":
   )
   
   # Calculating the Average Community Care Utilisation Using Deprivation
-  cc_by_imd = df_cc_imd.groupby('IMD_QUINTILE_19')['CC_ENCOUNTERS'].mean().reset_index()
-  cc_by_imd.columns = ['IMD_Quintile', 'Avg_CC_Encounters']
+  communitycare_by_imd = df_communitycare_imd.groupby('IMD_QUINTILE_19')['communitycare_ENCOUNTERS'].mean().reset_index()
+  communitycare_by_imd.columns = ['IMD_Quintile', 'Avg_communitycare_Encounters']
   
   # Sorting and arranging using Quintile range (1 being most deprived, and 5 being least deprived)
-  cc_by_imd = cc_by_imd.sort_values('IMD_Quintile')
+  communitycare_by_imd = communitycare_by_imd.sort_values('IMD_Quintile')
   
   # Create bar chart
   figure_cc3 = px.bar(
-    cc_by_imd,
+    communitycare_by_imd,
     x='IMD_Quintile',
-    y='Avg_CC_Encounters',
+    y='Avg_communitycare_Encounters',
     title='The Average Community Care Contacts and Visits From Patients By Deprivation Level Across Areas',
     labels={
       'IMD_Quintile': 'IMD Quintile (1=Most Deprived Level, 5=Least Deprived Level)',
-      'Avg_CC_Encounters': 'Average Community Care Contacts and Visits Per Month by Patients'
+      'Avg_communitycare_Encounters': 'Average Community Care Contacts and Visits Per Month by Patients'
     },
-    color='Avg_CC_Encounters',
+    color='Avg_communitycare_Encounters',
     color_continuous_scale='Purple',
-    text='Avg_CC_Encounters'
+    text='Avg_communitycare_Encounters'
   )
   
   figure_cc3.update_traces(
@@ -1026,7 +1026,7 @@ elif section == "Community provider activity":
   st.subheader("Community Care Specifically Using Frailty Status")
   
   # Merging with Person Data to Get and See Frailty Status within Patients
-  df_cc_frail = pd.merge(
+  df_communitycare_frail = pd.merge(
     df_activity,
     df_person[['PERSON_ID', 'ANALYSIS_MONTH', 'HAS_FRAIL']],
     left_on=['SK_PATIENT_ID_STR', 'ACTIVITY_MONTH'],
@@ -1035,28 +1035,28 @@ elif section == "Community provider activity":
   )
   
   # Calculating The Average Community Care Contacts/Visits by Frailty
-  cc_by_frailty = df_cc_frail.groupby('HAS_FRAIL')['CC_ENCOUNTERS'].mean().reset_index()
-  cc_by_frailty.columns = ['Frailty_Status', 'Avg_CC_Encounters']
+  communitycare_by_frailty = df_communitycare_frail.groupby('HAS_FRAIL')['communitycare_ENCOUNTERS'].mean().reset_index()
+  communitycare_by_frailty.columns = ['Frailty_Status', 'Avg_communitycare_Encounters']
   
   # Replacing the Boolean labels with suitable readable labels
-  cc_by_frailty['Frailty_Status'] = cc_by_frailty['Frailty_Status'].map({
+  communitycare_by_frailty['Frailty_Status'] = communitycare_by_frailty['Frailty_Status'].map({
     True: 'Frail',
     False: 'Not Frail'
   })
   
   # Creating a Grouped Bar Chart to Display The Data
   figure_cc4 = px.bar(
-    cc_by_frailty,
+    communitycare_by_frailty,
     x='Frailty_Status',
-    y='Avg_cc_Encounters',
+    y='Avg_communitycare_Encounters',
     title='The Average Community Care Visits/Contacts Based On Frailty Status',
     labels={
       'Frailty_Status': 'Frailty Status',
-      'Avg_CC_Encounters': 'The Average Community Care Visits/Contacts Per Each Month'
+      'Avg_communitycare_Encounters': 'The Average Community Care Visits/Contacts Per Each Month'
     },
     color='Frailty_Status',
     color_discrete_map={'Frail': "#A70505", 'Not Frail': "#7D4904"},
-    text='Avg_CC_Encounters'
+    text='Avg_communitycare_Encounters'
   )
   
   figure_cc4.update_traces(
@@ -1075,23 +1075,23 @@ elif section == "Community provider activity":
   st.subheader("Community Care Visit Length in Minutes Consistency")
   
   # Prepping the data - getting the durations where the visits/contacts are listed
-  cc_duration_data = []
+  communitycare_duration_data = []
   
   for idx, row in df_activity.iterrows():
-    if row['CC_ENCOUNTERS'] > 0 and row['CC_DURATION'] > 0:
-      avg_duration = row['CC_DURATION'] / row['CC_ENCOUNTERS']
+    if row['communitycare_ENCOUNTERS'] > 0 and row['communitycare_DURATION'] > 0:
+      avg_duration = row['communitycare_DURATION'] / row['communitycare_ENCOUNTERS']
       month_str = row['ACTIVITY_MONTH'].strftime('%b %Y')
-      cc_duration_data.append({
+      communitycare_duration_data.append({
         'Month': month_str,
         'Avg_Duration': avg_duration
       })
       
-  cc_duration_df = pd.DataFrame(cc_duration_data)
+  communitycare_duration_df = pd.DataFrame(communitycare_duration_data)
   
   # Creating the box plot for chart 5
-  if not cc_duration_df.empty:
+  if not communitycare_duration_df.empty:
     figure_cc5 = px.box(
-      cc_duration_df,
+      communitycare_duration_df,
       x='Month',
       y='Average_Duration',
       title='Community Care Visit/Contact Duration for Each Month',
@@ -1117,26 +1117,26 @@ elif section == "Community provider activity":
   st.subheader("Shows The Mix of Care Settings That The Top 20 Patients Use in As a Percentage Breakdown Using a Stacked Bar Graph")
   
   # Calculating the Total Number of Encounters by Each Patient and the Care Setting
-  patient_care_mix = df_activity.groupby('SK_PATIENT_ID').agg({
+  patient_mix_of_care = df_activity.groupby('SK_PATIENT_ID').agg({
     'GP_ENCOUNTERS': 'sum',
-    'CC_ENCOUNTERS': 'sum',
+    'communitycare_ENCOUNTERS': 'sum',
     'OP_ENCOUNTERS': 'sum',
     'IP_ENCOUNTERS': 'sum',
     'AE_ENCOUNTERS': 'sum'
   }).reset_index()
   
   # Calculating the total number of encounters per each patient
-  patient_care_mix['Total_Encounters'] = patient_care_mix[
-      ['GP_ENCOUNTERS', 'CC_ENCOUNTERS, 'OP_ENCOUNTERS', 'IP_ENCOUNTERS', 'AE_ENCOUNTERS']
+  patient_mix_of_care['Total_Encounters'] = patient_mix_of_care[
+      ['GP_ENCOUNTERS', 'communitycare_ENCOUNTERS', 'OP_ENCOUNTERS', 'IP_ENCOUNTERS', 'AE_ENCOUNTERS']
   ].sum(axis=1)
   
   
   # Getting the top 20 Patients By The Total Encounters
-  top_20_patients = patient_care_mix.nlargest(20, 'Total_Encounters')
+  top_20_patients = patient_mix_of_care.nlargest(20, 'Total_Encounters')
  
  # Calculating the percentages for each care setting
   top_20_patients['GP_%'] = (top_20_patients['GP_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
-  top_20_patients['CC_%'] = (top_20_patients['CC_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
+  top_20_patients['communitycare_%'] = (top_20_patients['communitycare_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
   top_20_patients['OP_%'] = (top_20_patients['OP_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
   top_20_patients['IP_%'] = (top_20_patients['IP_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100) 
   top_20_patients['AE_%'] = (top_20_patients['AE_ENCOUNTERS'] / top_20_patients['Total_Encounters'] * 100)
@@ -1154,7 +1154,7 @@ elif section == "Community provider activity":
   
   figure_cc6.add_trace(go.Bar(
     x=top_20_patients['SK_PATIENT_ID'],
-    y=top_20_patients['CC_%'],
+    y=top_20_patients['communitycare_%'],
     name='Community Care',
     marker_color='#9B59B6'
   ))
@@ -1180,7 +1180,7 @@ elif section == "Community provider activity":
     marker_color='#f39C12'
   ))
   
-  figure_cc.update_layout(
+  figure_cc6.update_layout(
     barmode='stack',
     title='Mix of Care Settings For the Top 20 Highest Workforce Utilising Patients',
     xaxis_title='Patient ID',
@@ -1199,7 +1199,7 @@ elif section == "Community provider activity":
   
   with col1: 
     peak_communitycare_month = monthly_communitycare.loc[monthly_communitycare['COMMUNITYCARE_ENCOUNTERS'].idxmax(), 'ACTIVITY_MONTH'].strftime('%B %Y')
-    lowest_communiycare_month = mothly_communitycare.loc[month;y-communitycare['COMMUNUTYCARE_ENCOUNTERS'].idxmin(), 'ACTIVITY_MONTH'].strftime('%B %Y')
+    lowest_communitycare_month = monthly_communitycare.loc[monthly_communitycare['COMMUNITYCARE_ENCOUNTERS'].idxmin(), 'ACTIVITY_MONTH'].strftime('%b %Y')
     
     st.info(f"""
       Community Care Provider Total Work Force Utilisation:
@@ -1208,22 +1208,22 @@ elif section == "Community provider activity":
       Average Community Care contacts and visits per patient: {average_communitycare_per_patient:.1f} contacts and visits
       Top/peak month: {peak_communitycare_month} ({monthly_communitycare['COMMUNITYCARE_ENCOUNTERS'].max():.0f} contacts)
       Lowest/Least contacts: {lowest_communitycare_month} ({monthly_communitycare['COMMUNITYCARE_ENCOUNTERS'].min():.0f} contacts)
-      Patients utilising and receiving care: {patients_receiving_communitycare} ({percentage_patients_receiving_communitycare:.1f}%)
+      Patients utilising and receiving care: {patients_receiving_communitycare} ({pct_receiving_communitycare:.1f:.1f}%)
       
-    """);
+    """)
     
     with col2: 
       # Calculating the care settings mix distribution
-      total_of_all_encounters = care_mix[['GP_ENCOUNTERS', 'COMMUNITYCARE_ENCOUNTERS', 'OUTPATIENT_ENCOUNTERS', 'INPATIENT_ENCOUNTERS', 'A&E_ENCOUNTERS']].sum().sum() #Query the second .sum() and the variable names.
-      communitycare_percentage = (care_mix['COMMUNITYCARE_ENCOUNTERS'].sum() / total_all_care_settings_encounters * 100) if total_all_care_settings_encounters > 0 else 0
+      total_of_all_encounters = mix_of_care[['GP_ENCOUNTERS', 'COMMUNITYCARE_ENCOUNTERS', 'OUTPATIENT_ENCOUNTERS', 'INPATIENT_ENCOUNTERS', 'A&E_ENCOUNTERS']].sum().sum() #Query the second .sum() and the variable names.
+      communitycare_percentage = (mix_of_care['COMMUNITYCARE_ENCOUNTERS'].sum() / total_of_all_encounters * 100) if total_of_all_encounters > 0 else 0
       
       # Check if frailty data is included/exists in the community care workforce usage.
       if not communitycare_by_frailty.empty and len(communitycare_by_frailty) == 2:
         average_frail_patients = communitycare_by_frailty[communitycare_by_frailty['Frailty_status'] == 'Frail']['Average_CommunityCare_Encounters'].values
         average_not_frail_patients = communitycare_by_frailty[communitycare_by_frailty['Frailty_Status'] == 'Not Frail']['Average_CommunityCare_Encounters'].values
         
-        if length(frail_average) > 0 and length(not_frail_average) > 0:
-          frail_ratio = frail_average[0] / not_frail_average[0] if not_frail_average[0] > 0 else 0
+        if len(average_frail_patients) > 0 and len(average_not_frail_patients) > 0:
+          frail_ratio = average_frail_patients[0] / average_not_frail_patients[0] if average_not_frail_patients[0] > 0 else 0
         else: 
           frail_ratio = 0
       else: 
